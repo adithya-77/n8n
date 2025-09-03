@@ -7,5 +7,4 @@ COPY weather_alerts.json /home/node/.n8n/workflows/
 # Expose the port n8n runs on
 EXPOSE 5678
 
-# The default command will start n8n
-CMD ["n8n", "start"]
+
