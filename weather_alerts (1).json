@@ -1,0 +1,195 @@
+{
+  "name": "weather_alerts",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5e655584-95b2-4481-b9d8-908d9416eabc",
+      "name": "Schedule Trigger",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://api.weatherstack.com/current?access_key=1dee88d22091179b1ff972fd1fbf9f26&query=Kayamkulam&units=m",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "c364ddec-ecc1-4a17-bfa2-f05caa570b27",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "chatId": "1812312468",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "e56df6da-e8b2-4fbf-9656-680eecdded92",
+      "name": "Send a text message",
+      "webhookId": "6374d1b8-1619-48b8-a830-2fcffbd557dc",
+      "credentials": {
+        "telegramApi": {
+          "id": "22Oyfqo4hdEOuvVT",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a weather assistant. Summarize this weather data and generate a short, human-friendly alert. \n\nWeather Data:\n{{ JSON.stringify($json, null, 2) }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "fdde11fc-f6ec-4f89-8e19-c3b6560a0382",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        336,
+        208
+      ],
+      "id": "956351e0-06c4-4f83-b7cb-8fd01c775e69",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "lN5SRT8VT1qKGSrG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v21.0/772996735903913/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer EAAXvi1FZBCzcBPUIlpYbJK3nPMZCL2ZAKZADOxcrtdKdhzpUO6ZBiQSTAOiuVYgfCBk1TTyZCjvusaGZB6gT1JiIAOEXVQzea5Au6VNwTxmDGGdomLzAs3G8ccopuesrdCzd0FhZACC45McuphPnZCEFKlZANZBr0RZCo85UoYcHqm11ni4iyHZADYMc6XZCg5J5O1swZDZD"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"918547465907\",\n  \"type\": \"template\",\n  \"template\": {\n    \"name\": \"weather_1\",\n    \"language\": { \"code\": \"en\" },\n    \"components\": [\n      {\n        \"type\": \"body\",\n        \"parameters\": [\n          { \"type\": \"text\", \"text\": \"Adithya\" },\n          { \"type\": \"text\", \"text\": \"{{ $json.output.replace(/\\n/g, ' ').replace(/\\*/g, '') || 'Default text' }}\" }\n        ]\n      }\n    ]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        192
+      ],
+      "id": "8c018fd9-a2a9-4869-93b5-b44a0b5db02b",
+      "name": "HTTP Request1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "28ae81f2-8b54-4ee4-a353-2d90159d4dda",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d4e96a7ebc4018b23ca0b65fca65c46b1afaca1c7bda5c1c4ff62a4caa78fdea"
+  },
+  "id": "ZRj8cw40pqx4jbq3",
+  "tags": []
+}
